@@ -9,7 +9,15 @@ class indexAction extends baseJenkinsAction
    */
   function execute($request)
   {
-    $userId  = $this->getUser()->getUserId();
+    $userId   = $this->getUser()->getUserId();
+    $username = $request->getParameter('sharedView');
+    if (isset($username))
+    {
+      $user = sfGuardUserPeer::retrieveByUsername($username);
+      $this->forward404If(null === $user, sprintf('The user "%s" does not exist!', $username));
+      $userId = $user->getId();
+    }
+    
     $jenkins = $this->getJenkins();
     
     $sortParams    = explode('_', $request->getParameter('sort'));
