@@ -6,8 +6,11 @@
 <div class="btn-group">
   <a class="btn dropdown-toggle <?php echo $class?>" data-toggle="dropdown" href="#">
     <?php echo $label ?>
+    <?php if (count($links)): ?>
     <span class="caret"></span>
+    <?php endif; ?>
   </a>
+  <?php if (count($links)): ?>
   <ul class="dropdown-menu<?php $align_right && print " dropdown-right" ?> ">
     <?php foreach ($links as $link): ?>
       <?php $options = array('title' => $link['label']) ?>
@@ -19,6 +22,7 @@
       <li><?php echo link_to($link['label'], $link['url'], $options) ?></li>
     <?php endforeach; ?>
   </ul>
+  <?php endif; ?>
 </div>
   
   

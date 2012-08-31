@@ -7,6 +7,7 @@
 <?php /** @var string  $branch_view_url */ ?>
 <?php /** @var string  $partial_url_for_sort_direction */ ?>
 <?php /** @var boolean $enabled_popover */ ?>
+<?php /** @var boolean $sharedViewMode */ ?>
 
 <div id="dashboard">
 
@@ -47,10 +48,12 @@
       </li>
       <?php endif ?>
       <li>
-        <?php if ($jenkins->isAvailable()): ?>
-          <?php echo link_to('Create a build branch', 'jenkins/createGroupRun', array('class' => 'add-run')); ?>
-        <?php else: ?>
-          <a href="#" class="add-run disabled">Create a build branch</a>
+        <?php if (!$sharedViewMode): ?>
+          <?php if ($jenkins->isAvailable()): ?>
+            <?php echo link_to('Create a build branch', 'jenkins/createGroupRun', array('class' => 'add-run')); ?>
+          <?php else: ?>
+            <a href="#" class="add-run disabled">Create a build branch</a>
+          <?php endif; ?>
         <?php endif; ?>
       </li>
       <?php foreach ($group_runs as $id => $group_run): ?>

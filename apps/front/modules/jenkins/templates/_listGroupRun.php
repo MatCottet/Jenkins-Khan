@@ -2,6 +2,7 @@
 <?php /** @var array $current_group_run */ ?>
 <?php /** @var Jenkins $jenkins */ ?>
 <?php /** @var durationFormatter $duration_formatter */ ?>
+<?php /** @var boolean $sharedViewMode */ ?>
 
 <ul>
   <?php if (null === $current_group_run['id']): ?>
@@ -19,7 +20,7 @@
             <?php include_partial('default/btnGroup', array(
               'label' => $current_group_run['git_branch'],
               'align_right' => true,
-              'links' => $current_group_run['dropdown_links'],
+              'links' => (!$sharedViewMode) ? $current_group_run['dropdown_links'] : array(),
               'class' => 'btn-jenkins-khan',
             ));?>
           </td>
@@ -53,12 +54,12 @@
               <?php endif; ?>
             </td>
             <td class="bouton">
-              <?php if ($run['is_cancelable']): ?>
+              <?php if (isset($run['is_cancelable']) && $run['is_cancelable']): ?>
                 <?php echo link_to('Cancel build',  'jenkins/cancelRun?run_id='.$id, array('class' => 'cancel', 'title' => 'Cancel build')) ?>
               <?php endif; ?>
             </td>
             <td class="bouton">
-              <?php if ($run['url_rebuild']): ?>
+              <?php if (isset($run['url_rebuild'])): ?>
                 <?php echo link_to('Relaunch', $run['url_rebuild'], array(
                   'class' => 'run-again', 
                   'title' => $run['title_url_rebuild'],
@@ -67,21 +68,23 @@
             </td>
             <td class="actions">
               <?php include_partial('default/btnGroup', array(
-                'links' => $run['dropdown_links'],
-                'align_right' => true,
-                'class' => 'btn-jenkins-khan',
+                'links'          => $run['dropdown_links'],
+                'align_right'    => true,
+                'class'          => 'btn-jenkins-khan',
               ));?>
             </td>
           </tr>
         </table>
       </li>
       <?php endforeach; ?>
-      <?php if (isset($current_group_run['url_add_build'])): ?>
-        <li class="add-build">
-          <?php echo link_to('Add a job to this build branch', $current_group_run['url_add_build'], array('class' => 'add-build', 'title' => 'Add a job to this build branch')); ?>
-        </li>
-      <?php else: ?>
-        <li class="add-build"><a href="#" class="disabled">Add a job to this build branch</a></li>
+      <?php if (!$sharedViewMode): ?>
+        <?php if (isset($current_group_run['url_add_build'])): ?>
+          <li class="add-build">
+            <?php echo link_to('Add a job to this build branch', $current_group_run['url_add_build'], array('class' => 'add-build', 'title' => 'Add a job to this build branch')); ?>
+          </li>
+        <?php else: ?>
+          <li class="add-build"><a href="#" class="disabled">Add a job to this build branch</a></li>
+        <?php endif; ?>
       <?php endif; ?>
 
   <?php endif; ?>

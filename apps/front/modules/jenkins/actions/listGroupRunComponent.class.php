@@ -8,6 +8,9 @@ class listGroupRunComponent extends sfComponent
    */
   public function execute($request)
   {
+    $sharedView     = $request->getParameter('sharedView');
+    $sharedViewMode = isset($sharedView);
+    
     /** @var Jenkins $jenkins */
     $groupRunId = $this->getVar('group_run_id');
     $jenkins    = $this->getVar('jenkins');
@@ -57,42 +60,54 @@ class listGroupRunComponent extends sfComponent
         'is_running'          => $isRunning,
         'progress'            => -1 === $progress ? null : $progress,
         'remaining_time'      => $remaining,
-        'is_cancelable'       => $isCancelable,
         'url'                 => $urlBuild,
         'url_console_log'     => $urlBuild . '/console',
-        'url_rebuild'         => $this->generateUrl('run_rebuild', $run),
-        'dropdown_links'      => $this->buildDropdownLinksJenkinsRun($run, $jenkins, $isRunning, $isJenkinsAvailable),
+        'dropdown_links'      => $this->buildDropdownLinksJenkinsRun($run, $jenkins, $isRunning, $isJenkinsAvailable, $sharedViewMode),
         'title_url_rebuild'   => $isRunning ? "Cancel current build and relaunch" : (!$run->isRebuildable() ? "Launch build immediatly" : "Relaunch build")
       );
+      
+      if (!$sharedViewMode)
+      {
+        $moreDataRuns = array(
+          'is_cancelable'   => $isCancelable,
+          'url_rebuild'     => $this->generateUrl('run_rebuild', $run),
+        );
+        $dataRuns[$run->getId()] = array_merge($dataRuns[$run->getId()], $moreDataRuns);
+      }
     }
 
     $currentGroupInfos = array(
       'id'              => $currentGroup->getId(),
       'git_branch'      => $currentGroup->getGitBranch(),
-      'url_add_build'   => $isJenkinsAvailable ? 'jenkins/addBuild?group_run_id='.$currentGroup->getId() : null,
       'dropdown_links'  => $this->buildDropdownCurrentGroup($currentGroup, $isJenkinsAvailable),
     );
+    if (!$sharedViewMode)
+    {
+      $url_add_build = array('url_add_build' => $isJenkinsAvailable ? 'jenkins/addBuild?group_run_id=' . $currentGroup->getId() : null);
+      $currentGroupInfos = array_merge($currentGroupInfos, $url_add_build);
+    }
     
     $this->setVar('runs', $dataRuns);
     $this->setVar('current_group_run', $currentGroupInfos);
     $this->setVar('duration_formatter', new durationFormatter());
+    $this->setVar('sharedViewMode', $sharedViewMode);
   }
-
 
   /**
    * @param \JenkinsRun $run
    * @param \Jenkins    $jenkins
-   * @param             $isRunning
-   * @param             $isJenkinsAvailable
+   * @param bool        $isRunning
+   * @param bool        $isJenkinsAvailable
+   * @param bool        $sharedViewMode
    *
    * @return array
    */
-  private function buildDropdownLinksJenkinsRun(JenkinsRun $run, Jenkins $jenkins, $isRunning, $isJenkinsAvailable)
+  private function buildDropdownLinksJenkinsRun(JenkinsRun $run, Jenkins $jenkins, $isRunning, $isJenkinsAvailable, $sharedViewMode = false)
   {
     $links    = array();
     $urlBuild = $run->getUrlBuild($jenkins);
 
-    if ($isRunning || $run->isRebuildable())
+    if ($isRunning || $run->isRebuildable() && !$sharedViewMode)
     {
       $links[] = array(
         'label' => 'Delay',
@@ -101,11 +116,14 @@ class listGroupRunComponent extends sfComponent
       );
     }
 
-    $links[] = array(
-      'label' => 'Remove build',
-      'title' => 'Remove build from build branch',
-      'url'   => $this->generateUrl('run_remove', $run),
-    );
+    if (!$sharedViewMode)
+    {
+      $links[] = array(
+        'label' => 'Remove build',
+        'title' => 'Remove build from build branch',
+        'url'   => $this->generateUrl('run_remove', $run),
+      );
+    }
 
     $isJenkinsAvailable && $links[] = array(
       'label'     => 'Go to console log',

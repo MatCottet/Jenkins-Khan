@@ -9,6 +9,7 @@ class indexAction extends baseJenkinsAction
    */
   function execute($request)
   {
+    $sharedViewMode = false;
     $userId   = $this->getUser()->getUserId();
     $username = $request->getParameter('sharedView');
     if (isset($username))
@@ -16,6 +17,7 @@ class indexAction extends baseJenkinsAction
       $user = sfGuardUserPeer::retrieveByUsername($username);
       $this->forward404If(null === $user, sprintf('The user "%s" does not exist!', $username));
       $userId = $user->getId();
+      $sharedViewMode = true;
     }
     
     $jenkins = $this->getJenkins();
@@ -120,6 +122,7 @@ class indexAction extends baseJenkinsAction
     $this->setVar('branch_view_url', $branch_view_url);
     $this->setVar('partial_url_for_sort_direction', $partial_url_for_sort_direction);
     $this->setVar('enabled_popover', $this->getUser()->getProfile()->getPopoverEnabled());
+    $this->setVar('sharedViewMode', $sharedViewMode);
   }
   
   /**
